@@ -1277,11 +1277,17 @@ clock_adjust(void)
 	}
 
 	if (dostep) {
-		if (simple_query || debug || l_step_systime(&server->offset)){
+		int just_log = simple_query || debug;
+		int failed = FALSE;
+		if (!just_log){
+			failed = l_step_systime(&server->offset) == FALSE;
+		}
+		if (just_log || failed){
 			msyslog(LOG_NOTICE, "step time server %s offset %s sec",
 				stoa(&server->srcadr),
 				lfptoa(&server->offset, 6));
 		}
+		return failed;
 	} else {
 #ifndef SYS_WINNT
 		if (simple_query || l_adj_systime(&server->offset)) {
